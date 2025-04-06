@@ -2,10 +2,8 @@ const std = @import("std");
 
 const lib = @import("zox_lib");
 
-const debug = @import("debug.zig");
-const Chunk = @import("chunk.zig").Chunk;
-const OpCode = @import("chunk.zig").OpCode;
-const Value = @import("value.zig").Value;
+const OpCode = lib.OpCode;
+const Chunk = lib.Chunk;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -15,9 +13,12 @@ pub fn main() !void {
     var chunk = Chunk.init(allocator);
     defer chunk.deinit();
 
-    try chunk.append(@intFromEnum(OpCode.ret));
+    const constant = try chunk.addConstant(1.2);
+    try chunk.push(@intFromEnum(OpCode.@"const"), 1);
+    try chunk.push(constant, 1);
+    try chunk.push(@intFromEnum(OpCode.ret), 1);
 
-    debug.disassembleChunk(&chunk, "test chunk");
+    lib.debug.disassembleChunk(&chunk, "test chunk");
 
     return;
 }
