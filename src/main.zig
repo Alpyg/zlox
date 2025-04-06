@@ -3,7 +3,6 @@ const std = @import("std");
 const lib = @import("zox_lib");
 
 const Chunk = lib.Chunk;
-const debug = lib.debug;
 const OpCode = lib.OpCode;
 const VM = lib.VM;
 
@@ -15,15 +14,20 @@ pub fn main() !void {
     var chunk = Chunk.init(allocator);
     defer chunk.deinit();
 
-    const constant = try chunk.addConstant(1.2);
+    var constant = try chunk.addConstant(1);
     try chunk.push(@intFromEnum(OpCode.@"const"), 1);
     try chunk.push(constant, 1);
-    try chunk.push(@intFromEnum(OpCode.ret), 1);
+    constant = try chunk.addConstant(2);
+    try chunk.push(@intFromEnum(OpCode.@"const"), 2);
+    try chunk.push(constant, 2);
+    constant = try chunk.addConstant(3);
+    try chunk.push(@intFromEnum(OpCode.@"const"), 3);
+    try chunk.push(constant, 3);
+    try chunk.push(@intFromEnum(OpCode.ret), 4);
 
-    var vm = VM.init(&chunk);
+    var vm = VM.init(allocator, &chunk);
+    defer vm.deinit();
     try vm.run();
-
-    lib.debug.disassembleChunk(&chunk, "test chunk");
 
     return;
 }
