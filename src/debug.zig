@@ -24,16 +24,14 @@ pub fn disassembleInstruction(chunk: *Chunk, offset: usize) usize {
 
     const instruction: OpCode = @enumFromInt(chunk.bytecode.items[offset]);
     switch (instruction) {
-        OpCode.ret => {
-            return simpleInstruction(@tagName(instruction), offset);
-        },
-        OpCode.@"const" => {
-            return constInstruction(@tagName(instruction), chunk, offset);
-        },
-        // else => {
-        //     out.print("Unknown opcode {d}", .{instruction});
-        //     return offset + 1;
-        // },
+        OpCode.@"const" => return constInstruction(@tagName(instruction), chunk, offset),
+        OpCode.negate,
+        OpCode.add,
+        OpCode.subtract,
+        OpCode.multiply,
+        OpCode.divide,
+        OpCode.ret,
+        => return simpleInstruction(@tagName(instruction), offset),
     }
 }
 

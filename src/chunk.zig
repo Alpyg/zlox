@@ -5,6 +5,11 @@ const Value = @import("value.zig").Value;
 
 pub const OpCode = enum(u8) {
     @"const",
+    negate,
+    add,
+    subtract,
+    multiply,
+    divide,
     ret,
 };
 

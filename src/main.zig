@@ -14,20 +14,31 @@ pub fn main() !void {
     var chunk = Chunk.init(allocator);
     defer chunk.deinit();
 
-    var constant = try chunk.addConstant(1);
+    var constant: u8 = 0;
+
+    constant = try chunk.addConstant(1.2);
     try chunk.push(@intFromEnum(OpCode.@"const"), 1);
     try chunk.push(constant, 1);
-    constant = try chunk.addConstant(2);
-    try chunk.push(@intFromEnum(OpCode.@"const"), 2);
-    try chunk.push(constant, 2);
-    constant = try chunk.addConstant(3);
-    try chunk.push(@intFromEnum(OpCode.@"const"), 3);
-    try chunk.push(constant, 3);
-    try chunk.push(@intFromEnum(OpCode.ret), 4);
+    constant = try chunk.addConstant(3.4);
+    try chunk.push(@intFromEnum(OpCode.@"const"), 1);
+    try chunk.push(constant, 1);
+
+    try chunk.push(@intFromEnum(OpCode.add), 1);
+
+    constant = try chunk.addConstant(5.6);
+    try chunk.push(@intFromEnum(OpCode.@"const"), 1);
+    try chunk.push(constant, 1);
+
+    try chunk.push(@intFromEnum(OpCode.divide), 1);
+    try chunk.push(@intFromEnum(OpCode.negate), 1);
+
+    try chunk.push(@intFromEnum(OpCode.ret), 2);
 
     var vm = VM.init(allocator, &chunk);
     defer vm.deinit();
     try vm.run();
+
+    lib.debug.disassembleChunk(vm.chunk, "test chunk");
 
     return;
 }
