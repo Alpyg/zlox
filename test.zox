@@ -1,0 +1,3 @@
+var str = "a";
+var b = 2;
+var c = 1 + b;

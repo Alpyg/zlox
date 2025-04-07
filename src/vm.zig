@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const Chunk = @import("chunk.zig").Chunk;
+const compiler = @import("compiler.zig");
 const debug = @import("debug.zig");
 const OpCode = @import("chunk.zig").OpCode;
 const Value = @import("value.zig").Value;
@@ -19,11 +20,11 @@ pub const VM = struct {
     stack: std.ArrayList(Value),
     stack_top: [*]Value,
 
-    pub fn init(allocator: std.mem.Allocator, chunk: *Chunk) Self {
+    pub fn init(allocator: std.mem.Allocator) Self {
         const stack = std.ArrayList(Value).init(allocator);
         return Self{
-            .chunk = chunk,
-            .ip = chunk.bytecode.items.ptr,
+            .chunk = undefined,
+            .ip = undefined,
             .stack = stack,
             .stack_top = stack.items.ptr,
         };
@@ -34,11 +35,12 @@ pub const VM = struct {
         self.stack_top = undefined;
     }
 
-    pub fn interpret(self: *Self, chunk: *Chunk) InterpretError!void {
-        self.chunk = chunk;
-        self.ip = chunk.bytecode.items.ptr;
-
-        return self.run();
+    pub fn interpret(_: *Self, src: []const u8) InterpretError!void {
+        try compiler.compile(src);
+        // self.chunk = chunk;
+        // self.ip = chunk.bytecode.items.ptr;
+        //
+        // return self.run();
     }
 
     pub fn run(self: *VM) !void {
