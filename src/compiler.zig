@@ -1,14 +1,14 @@
 const std = @import("std");
-const Scanner = @import("scanner.zig").Scanner;
-const Token = @import("scanner.zig").Token;
-const TokenType = @import("scanner.zig").TokenType;
+const Lexer = @import("lexer.zig").Lexer;
+const Token = @import("lexer.zig").Token;
+const TokenType = @import("lexer.zig").TokenType;
 
 pub fn compile(src: []const u8) !void {
-    var scanner = Scanner.init(src);
+    var lexer = Lexer.init(src);
 
     var line: usize = 0;
     while (true) {
-        const token: Token = scanner.scanToken();
+        const token: Token = lexer.scanToken();
 
         if (token.line != line) {
             std.debug.print("{d:>4} ", .{token.line});

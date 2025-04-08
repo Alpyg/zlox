@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub const Scanner = struct {
+pub const Lexer = struct {
     const Self = @This();
 
     start: []const u8,
