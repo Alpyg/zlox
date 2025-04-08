@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const Chunk = @import("chunk.zig").Chunk;
-const compiler = @import("compiler.zig");
+const Compiler = @import("compiler.zig").Compiler;
 const debug = @import("debug.zig");
 const OpCode = @import("chunk.zig").OpCode;
 const Value = @import("value.zig").Value;
@@ -20,6 +20,8 @@ pub const VM = struct {
     stack: std.ArrayList(Value),
     stack_top: [*]Value,
 
+    allocator: std.mem.Allocator,
+
     pub fn init(allocator: std.mem.Allocator) Self {
         const stack = std.ArrayList(Value).init(allocator);
         return Self{
@@ -27,6 +29,7 @@ pub const VM = struct {
             .ip = undefined,
             .stack = stack,
             .stack_top = stack.items.ptr,
+            .allocator = allocator,
         };
     }
 
@@ -35,12 +38,17 @@ pub const VM = struct {
         self.stack_top = undefined;
     }
 
-    pub fn interpret(_: *Self, src: []const u8) InterpretError!void {
-        try compiler.compile(src);
-        // self.chunk = chunk;
-        // self.ip = chunk.bytecode.items.ptr;
-        //
-        // return self.run();
+    pub fn interpret(self: *Self, src: []const u8) !void {
+        var chunk = Chunk.init(self.allocator);
+        defer chunk.deinit();
+
+        var compiler = Compiler.init(src, &chunk);
+        compiler.compile();
+
+        self.chunk = &chunk;
+        self.ip = chunk.bytecode.items.ptr;
+
+        return self.run();
     }
 
     pub fn run(self: *VM) !void {
@@ -51,6 +59,7 @@ pub const VM = struct {
                 @intFromPtr(self.ip) - @intFromPtr(self.chunk.bytecode.items.ptr),
             );
             switch (@as(OpCode, @enumFromInt(self.readByte()))) {
+                OpCode.nop => {},
                 OpCode.@"const" => {
                     const constant = self.readConstant();
                     try self.push(constant);

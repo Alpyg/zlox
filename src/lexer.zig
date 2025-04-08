@@ -50,17 +50,15 @@ pub const Lexer = struct {
     inline fn makeToken(self: *Self, token_type: TokenType) Token {
         return Token{
             .type = token_type,
-            .start = self.start.ptr,
-            .length = self.current.ptr - self.start.ptr,
+            .start = self.start[0 .. self.current.ptr - self.start.ptr],
             .line = self.line,
         };
     }
 
-    inline fn errorToken(self: *Self, message: []const u8) Token {
+    inline fn errorToken(self: *Self, msg: []const u8) Token {
         return Token{
             .type = TokenType.@"error",
-            .start = message.ptr,
-            .length = message.len,
+            .start = msg,
             .line = self.line,
         };
     }
@@ -196,8 +194,7 @@ pub const Lexer = struct {
 
 pub const Token = struct {
     type: TokenType,
-    start: [*]const u8,
-    length: usize,
+    start: []const u8,
     line: usize,
 };
 
@@ -208,11 +205,11 @@ pub const TokenType = enum(u8) {
     @"}",
     @",",
     @".",
+    @";",
     @"-",
     @"+",
-    @";",
-    @"/",
     @"*",
+    @"/",
     @"!",
     @"!=",
     @"=",
@@ -221,25 +218,25 @@ pub const TokenType = enum(u8) {
     @"<=",
     @">",
     @">=",
+    @"var",
     identifier,
     string,
     number,
-    @"and",
-    class,
-    @"else",
+    true,
     false,
-    @"for",
-    @"fn",
-    @"if",
     nil,
+    @"and",
     @"or",
-    print,
+    @"if",
+    @"else",
+    @"for",
+    @"while",
+    @"fn",
     @"return",
+    class,
     super,
     this,
-    true,
-    @"var",
-    @"while",
+    print,
     @"error",
     eof,
 };

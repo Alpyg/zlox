@@ -25,6 +25,7 @@ pub fn disassembleInstruction(chunk: *Chunk, offset: usize) usize {
     const instruction: OpCode = @enumFromInt(chunk.bytecode.items[offset]);
     switch (instruction) {
         OpCode.@"const" => return constInstruction(@tagName(instruction), chunk, offset),
+        OpCode.nop,
         OpCode.negate,
         OpCode.add,
         OpCode.subtract,

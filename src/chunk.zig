@@ -4,6 +4,7 @@ const Allocator = std.mem.Allocator;
 const Value = @import("value.zig").Value;
 
 pub const OpCode = enum(u8) {
+    nop,
     @"const",
     negate,
     add,
