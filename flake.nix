@@ -1,5 +1,5 @@
 {
-  description = "An empty project that uses Zig.";
+  description = "zlox development flake.";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-24.11";
