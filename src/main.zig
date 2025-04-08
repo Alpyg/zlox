@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const lib = @import("zox_lib");
+const lib = @import("zlox_lib");
 
 const Chunk = lib.Chunk;
 const OpCode = lib.OpCode;
@@ -18,7 +18,7 @@ pub fn main() !void {
         1 => try repl(allocator),
         2 => try runFile(allocator, args[1]),
         else => {
-            std.debug.print("Usage: zox [path]\n", .{});
+            std.debug.print("Usage: zlox [path]\n", .{});
             std.process.exit(64);
         },
     }

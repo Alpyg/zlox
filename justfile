@@ -6,3 +6,6 @@ repl:
 
 interpret PATH:
   zig build run -- {{PATH}}
+
+release:
+  zig build --release=small

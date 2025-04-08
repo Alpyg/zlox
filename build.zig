@@ -14,20 +14,19 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-    exe_mod.addImport("zox_lib", lib_mod);
+    exe_mod.addImport("zlox_lib", lib_mod);
 
     const lib = b.addStaticLibrary(.{
-        .name = "zox",
+        .name = "zlox",
         .root_module = lib_mod,
     });
     b.installArtifact(lib);
 
     const exe = b.addExecutable(.{
-        .name = "zox",
+        .name = "zlox",
         .root_module = exe_mod,
     });
     b.installArtifact(exe);
-
 
     const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());

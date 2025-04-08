@@ -1,7 +1,7 @@
 .{
-    .name = .zox,
+    .name = .zlox,
     .version = "0.0.0",
-    .fingerprint = 0x1a9cbaf299eece0e, // Changing this has security and trust implications.
+    .fingerprint = 0xd8b023c628ab77ce, // Changing this has security and trust implications.
     .minimum_zig_version = "0.15.0-dev.208+8acedfd5b",
     .dependencies = .{},
     .paths = .{
