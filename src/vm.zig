@@ -5,6 +5,7 @@ const Compiler = @import("compiler.zig").Compiler;
 const debug = @import("debug.zig");
 const OpCode = @import("chunk.zig").OpCode;
 const Value = @import("value.zig").Value;
+const ValueType = @import("value.zig").ValueType;
 
 pub const InterpretError = error{
     Compile,
@@ -64,27 +65,49 @@ pub const VM = struct {
                     const constant = self.readConstant();
                     try self.push(constant);
                 },
-                OpCode.negate => try self.push(-self.pop()),
-                OpCode.add => {
+                OpCode.nil => try self.push(Value.nil),
+                OpCode.true => try self.push(Value{ .bool = true }),
+                OpCode.false => try self.push(Value{ .bool = false }),
+                OpCode.not => try self.push(Value{ .bool = isFalsy(self.pop()) }),
+                OpCode.equal => {
                     const b = self.pop();
                     const a = self.pop();
-                    try self.push(a + b);
+                    try self.push(Value{ .bool = a.isEqual(b) });
                 },
-                OpCode.subtract => {
-                    const b = self.pop();
-                    const a = self.pop();
-                    try self.push(a - b);
+                OpCode.greater => try self.binaryOp(.bool, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a - b;
+                    }
+                }.op),
+                OpCode.less => try self.binaryOp(.bool, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a - b;
+                    }
+                }.op),
+                OpCode.negate => {
+                    if (!self.peek(0)[0].isNum()) @panic("runtime error"); // TODO Handle this better
+                    try self.push(Value{ .num = -self.pop().num });
                 },
-                OpCode.multiply => {
-                    const b = self.pop();
-                    const a = self.pop();
-                    try self.push(a * b);
-                },
-                OpCode.divide => {
-                    const b = self.pop();
-                    const a = self.pop();
-                    try self.push(a / b);
-                },
+                OpCode.add => try self.binaryOp(.num, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a + b;
+                    }
+                }.op),
+                OpCode.subtract => try self.binaryOp(.num, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a - b;
+                    }
+                }.op),
+                OpCode.multiply => try self.binaryOp(.num, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a * b;
+                    }
+                }.op),
+                OpCode.divide => try self.binaryOp(.num, struct {
+                    pub fn op(a: f32, b: f32) f32 {
+                        return a / b;
+                    }
+                }.op),
                 OpCode.ret => {
                     std.debug.print("{any}\n", .{self.pop()});
                     return;
@@ -117,5 +140,30 @@ pub const VM = struct {
         self.stack_top -= 1;
         self.stack.items.len -= 1;
         return self.stack_top[0];
+    }
+
+    fn peek(self: *Self, distance: usize) [*]Value {
+        return self.stack_top - 1 - distance;
+    }
+
+    inline fn binaryOp(
+        self: *Self,
+        value_type: ValueType,
+        comptime op: fn (a: f32, b: f32) f32,
+    ) !void {
+        if (!self.peek(0)[0].isNum() or !self.peek(1)[0].isNum()) @panic("Operands must be numbers.");
+
+        const b = self.pop().num;
+        const a = self.pop().num;
+
+        switch (value_type) {
+            .bool => try self.push(Value{ .bool = op(a, b) > 0 }),
+            .num => try self.push(Value{ .num = op(a, b) }),
+            else => unreachable,
+        }
+    }
+
+    fn isFalsy(value: Value) bool {
+        return value.isNil() or (value.isBool() and !value.bool);
     }
 };

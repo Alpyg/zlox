@@ -6,6 +6,13 @@ const Value = @import("value.zig").Value;
 pub const OpCode = enum(u8) {
     nop,
     @"const",
+    nil,
+    true,
+    false,
+    not,
+    equal,
+    greater,
+    less,
     negate,
     add,
     subtract,

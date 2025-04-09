@@ -118,7 +118,7 @@ pub const Compiler = struct {
             else => std.debug.print(" at {s}", .{token.start}),
         }
 
-        std.debug.print(": {s}", .{msg});
+        std.debug.print(": {s}\n", .{msg});
 
         self.hadError = true;
     }
@@ -152,7 +152,7 @@ pub const Compiler = struct {
 
     fn number(self: *Self) void {
         const value: f32 = std.fmt.parseFloat(f32, self.previous.start) catch unreachable;
-        self.emitConstant(value);
+        self.emitConstant(.{ .num = value });
     }
 
     fn grouping(self: *Self) void {
@@ -166,7 +166,8 @@ pub const Compiler = struct {
         self.parsePrecedence(Precedence.unary);
 
         switch (operator_type) {
-            TokenType.@"-" => self.emit(OpCode.negate),
+            .@"!" => self.emit(OpCode.not),
+            .@"-" => self.emit(OpCode.negate),
             else => unreachable,
         }
     }
@@ -177,10 +178,25 @@ pub const Compiler = struct {
         self.parsePrecedence(@enumFromInt(@intFromEnum(rule.precedence) + 1));
 
         switch (operator_type) {
+            .@"!=" => self.emit(.{ OpCode.equal, OpCode.not }),
+            .@"==" => self.emit(OpCode.equal),
+            .@">" => self.emit(OpCode.greater),
+            .@">=" => self.emit(.{ OpCode.less, OpCode.not }),
+            .@"<" => self.emit(OpCode.less),
+            .@"<=" => self.emit(.{ OpCode.greater, OpCode.not }),
             .@"+" => self.emit(OpCode.add),
             .@"-" => self.emit(OpCode.subtract),
             .@"*" => self.emit(OpCode.multiply),
             .@"/" => self.emit(OpCode.divide),
+            else => unreachable,
+        }
+    }
+
+    fn literal(self: *Self) void {
+        switch (self.previous.type) {
+            .nil => self.emit(OpCode.nil),
+            .true => self.emit(OpCode.true),
+            .false => self.emit(OpCode.false),
             else => unreachable,
         }
     }
@@ -218,21 +234,21 @@ const rules: [40]ParseRule = .{
     ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .term }, // +
     ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .factor }, // *
     ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .factor }, // /
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // !
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // !=
+    ParseRule{ .prefix = Compiler.unary, .infix = null, .precedence = .none }, // !
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .equality }, // !=
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // =
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // ==
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // <
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // <=
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // >
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // >=
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .equality }, // ==
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .comparison }, // >
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .comparison }, // >=
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .comparison }, // <
+    ParseRule{ .prefix = null, .infix = Compiler.binary, .precedence = .comparison }, // <=
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // var
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // identifier
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // string
+    ParseRule{ .prefix = Compiler.literal, .infix = null, .precedence = .none }, // nil
+    ParseRule{ .prefix = Compiler.literal, .infix = null, .precedence = .none }, // true
+    ParseRule{ .prefix = Compiler.literal, .infix = null, .precedence = .none }, // false
     ParseRule{ .prefix = Compiler.number, .infix = null, .precedence = .none }, // number
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // true
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // false
-    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // nil
+    ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // string
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // and
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // or
     ParseRule{ .prefix = null, .infix = null, .precedence = .none }, // if
